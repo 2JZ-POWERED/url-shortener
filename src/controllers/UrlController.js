@@ -1,9 +1,7 @@
 import Crypto from 'crypto'
 import { redis } from '../utils/redis'
 import UAParser from 'ua-parser-js'
-
-const BASE_URL = 'http://localhost:3000/'
-const URL_HSET = 'url-hset'
+import { BASE_URL, URL_HSET, VISIT_TIMEOUT } from '../settings'
 
 function randomString() {
   return Crypto.randomBytes(32).toString('base64').slice(0, 5)
@@ -30,7 +28,7 @@ async function addUrl(req, res) {
   let newPath
   try {
     newPath = await getOrGenUrl(path)
-    await redis.hset(`${URL_HSET}:${newPath}`, 'user', user._id.toString(), 'origin', origin, 'clicked', 0, 'firefox')
+    await redis.hset(`${URL_HSET}:${newPath}`, 'user', user._id.toString(), 'origin', origin)
   } catch (err) {
     if (err.message == 'Exists') return res.json({ error: { message: 'Path Exists.' } })
     console.log(err)
@@ -42,11 +40,11 @@ async function addUrl(req, res) {
 async function clicked(path, ua) {
   await redis.hincrby(`${URL_HSET}:${path}`, 'clicked', 1)
   if (['Firefox', 'Chrome', 'Safari'].indexOf(ua.browser.name) != -1) await redis.hincrby(`${URL_HSET}:${path}`, ua.browser.name, 1)
-  else await redis.hincrby(`${URL_HSET}:${path}`, 'other-browser', 1)
+  else await redis.hincrby(`${URL_HSET}:${path}`, 'other-browsers', 1)
   if (['Android', 'iOS', 'Windows', 'Linux'].indexOf(ua.os.name) != -1) await redis.hincrby(`${URL_HSET}:${path}`, ua.os.name, 1)
-  else await redis.hincrby(`${URL_HSET}:${path}`, 'other-os', 1)
+  else await redis.hincrby(`${URL_HSET}:${path}`, 'other-oses', 1)
   if (ua.device.type == 'mobile') await redis.hincrby(`${URL_HSET}:${path}`, ua.device.type, 1)
-  else await redis.hincrby(`${URL_HSET}:${path}`, 'other-device', 1)
+  else await redis.hincrby(`${URL_HSET}:${path}`, 'other-devices', 1)
 }
 
 async function redirectUrl(req, res) {
@@ -56,7 +54,7 @@ async function redirectUrl(req, res) {
     if (!req.cookies[path]) {
       const ua = UAParser(req.headers['user-agent'])
       await clicked(path, ua)
-      res.cookie(path, 'visited', { maxAge: 10 * 60 * 1000 })
+      res.cookie(path, 'visited', { maxAge: VISIT_TIMEOUT })
     } else console.log('not clicked')
     return res.redirect(url)
   }
