@@ -21,4 +21,6 @@ app.use('/', urlRoutes)
 app.use('/analytics', checkAuth, analyticsRoutes)
 
 console.log('Started...')
+// import { saveGatheredData } from './controllers/AnalyticsController'
+// saveGatheredData('ggle')
 app.listen(3000)
