@@ -1,5 +1,6 @@
 import express from 'express'
 import bodyParser from 'body-parser'
+import cookieParser from 'cookie-parser'
 import analyticsRoutes from './routes/AnalyticsRoutes'
 import urlRoutes from './routes/UrlRoutes'
 import userRoutes from './routes/UserRoutes'
@@ -13,6 +14,8 @@ app.use(
     extended: true,
   }),
 )
+app.use(cookieParser())
+
 app.use('/user', userRoutes)
 app.use('/', urlRoutes)
 app.use('/analytics', checkAuth, analyticsRoutes)
