@@ -80,7 +80,7 @@ async function saveGatheredData(path) {
   }).save()
   const del = await redis.del(`${URL_HSET}:${path}`)
   const cre = await redis.hset(`${URL_HSET}:${path}`, 'user', data.user, 'origin', data.origin)
-  console.log(`>>>>> Analytics record created. status: ${!!sts}, del: ${del}, cre: ${cre}`)
+  console.log(`>>>>> Analytics record ${path} created. status: ${!!sts}, del: ${del}, cre: ${cre}`)
 }
 module.exports = {
   getAnalytics,
