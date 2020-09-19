@@ -37,25 +37,25 @@ async function addUrl(req, res) {
   return res.json({ data: { origin, shortUrl: `${BASE_URL}${newPath}` } })
 }
 
-async function clicked(path, ua) {
-  await redis.hincrby(`${URL_HSET}:${path}`, 'clicked', 1)
-  if (['Firefox', 'Chrome', 'Safari'].indexOf(ua.browser.name) != -1) await redis.hincrby(`${URL_HSET}:${path}`, ua.browser.name, 1)
-  else await redis.hincrby(`${URL_HSET}:${path}`, 'other-browsers', 1)
-  if (['Android', 'iOS', 'Windows', 'Linux'].indexOf(ua.os.name) != -1) await redis.hincrby(`${URL_HSET}:${path}`, ua.os.name, 1)
-  else await redis.hincrby(`${URL_HSET}:${path}`, 'other-oses', 1)
-  if (ua.device.type == 'mobile') await redis.hincrby(`${URL_HSET}:${path}`, ua.device.type, 1)
-  else await redis.hincrby(`${URL_HSET}:${path}`, 'other-devices', 1)
+async function clicked(path, ua, unique) {
+  const u = unique ? 'u-' : ''
+  await redis.hincrby(`${URL_HSET}:${path}`, `${u}clicked`, 1)
+  if (['Firefox', 'Chrome', 'Safari'].indexOf(ua.browser.name) != -1) await redis.hincrby(`${URL_HSET}:${path}`, `${u}${ua.browser.name}`, 1)
+  else await redis.hincrby(`${URL_HSET}:${path}`, `${u}other-browsers`, 1)
+  if (ua.device.type == 'mobile') await redis.hincrby(`${URL_HSET}:${path}`, `${u}${ua.device.type}`, 1)
+  else await redis.hincrby(`${URL_HSET}:${path}`, `${u}other-devices`, 1)
 }
 
 async function redirectUrl(req, res) {
   const { path } = req.params
   const url = await redis.hget(`${URL_HSET}:${path}`, 'origin')
   if (url) {
+    const ua = UAParser(req.headers['user-agent'])
     if (!req.cookies[path]) {
-      const ua = UAParser(req.headers['user-agent'])
-      await clicked(path, ua)
+      await clicked(path, ua, true)
       res.cookie(path, 'visited', { maxAge: VISIT_TIMEOUT })
-    } else console.log('not clicked')
+    }
+    await clicked(path, ua, false)
     return res.redirect(url)
   }
   return res.sendStatus(404)

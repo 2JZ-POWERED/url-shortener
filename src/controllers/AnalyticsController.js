@@ -8,13 +8,15 @@ const reportTemplate = {
   chrome: 0,
   safari: 0,
   otherBrowsers: 0,
-  android: 0,
-  ios: 0,
-  windows: 0,
-  linux: 0,
-  otherOses: 0,
   mobile: 0,
   otherDevices: 0,
+  uClicked: 0,
+  uFirefox: 0,
+  uChrome: 0,
+  uSafari: 0,
+  uOtherBrowsers: 0,
+  uMobile: 0,
+  uOtherDevices: 0,
 }
 
 async function getAnalytics(req, res) {
@@ -70,13 +72,15 @@ async function saveGatheredData(path) {
     chrome: parseInt(data.Chrome || '0', 10),
     safari: parseInt(data.Safari || '0', 10),
     otherBrowsers: parseInt(data['other-browsers'] || '0', 10),
-    android: parseInt(data.Android || '0', 10),
-    ios: parseInt(data.iOS || '0', 10),
-    windows: parseInt(data.Windows || '0', 10),
-    linux: parseInt(data.Linux || '0', 10),
-    otherOses: parseInt(data['other-oses'] || '0', 10),
     mobile: parseInt(data.mobile || '0', 10),
     otherDevices: parseInt(data['other-devices'] || '0', 10),
+    uClicked: parseInt(data['u-clicked'] || '0', 10),
+    uFirefox: parseInt(data['u-Firefox'] || '0', 10),
+    uChrome: parseInt(data['u-Chrome'] || '0', 10),
+    uSafari: parseInt(data['u-Safari'] || '0', 10),
+    uOtherBrowsers: parseInt(data['u-other-browsers'] || '0', 10),
+    uMobile: parseInt(data['u-mobile'] || '0', 10),
+    uOtherDevices: parseInt(data['u-other-devices'] || '0', 10),
   }).save()
   const del = await redis.del(`${URL_HSET}:${path}`)
   const cre = await redis.hset(`${URL_HSET}:${path}`, 'user', data.user, 'origin', data.origin)

@@ -29,10 +29,8 @@ console.log('Started... ')
 const job = new CronJob(
   '01 55 23 */1 * *',
   async () => {
-    console.log('Job Started!')
     const k = await redis.keys(`${URL_HSET}:*`)
     await Promise.each(k, (path) => saveGatheredData(path.split(':')[1]))
-    console.log('Job Ended!')
   },
   null,
   true,
